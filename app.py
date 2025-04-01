@@ -12,17 +12,35 @@ def calculate_mortgage(loan_amount, interest_rate, loan_term_years, offset_balan
     total_months = loan_term_years * 12
     adjusted_loan_amount = loan_amount - offset_balance
 
+    # Regular monthly repayment without the extra repayment
     if monthly_rate > 0:
         monthly_repayment = adjusted_loan_amount * (monthly_rate * (1 + monthly_rate) ** total_months) / ((1 + monthly_rate) ** total_months - 1)
     else:
         monthly_repayment = adjusted_loan_amount / total_months
 
+    # Add the extra repayment to the regular repayment
+    total_monthly_repayment = monthly_repayment + extra_repayment
+
     total_cost = monthly_repayment * total_months
     adjusted_total_cost = total_cost - (extra_repayment * total_months)
     interest_saved = total_cost - adjusted_total_cost
-    years_saved = (adjusted_total_cost / monthly_repayment) / 12  # Calculate years saved
-    revised_term_months = adjusted_total_cost / monthly_repayment
-    revised_term_years = revised_term_months / 12  # Convert months to years
+
+    # Calculate the number of months saved by extra repayments
+    balance = adjusted_loan_amount
+    months_paid_off_early = 0
+
+    while balance > 0:
+        interest_payment = balance * monthly_rate
+        principal_payment = total_monthly_repayment - interest_payment
+        balance -= principal_payment
+        months_paid_off_early += 1
+        if balance < 0:
+            balance = 0
+
+    # Calculate years saved
+    months_saved = total_months - months_paid_off_early
+    years_saved = months_saved / 12
+    revised_term_months = months_paid_off_early
 
     return {
         "monthly_repayment": round(monthly_repayment, 2),
@@ -30,7 +48,8 @@ def calculate_mortgage(loan_amount, interest_rate, loan_term_years, offset_balan
         "interest_saved": round(interest_saved, 2),
         "years_saved": round(years_saved, 2),
         "adjusted_total_cost": round(adjusted_total_cost, 2),
-        "revised_term_years": round(revised_term_years, 2)  # Use years here
+        "revised_term_months": revised_term_months,
+        "revised_term_years": round(revised_term_months / 12, 2)  # Revised term in years
     }
 
 # Function to create repayment schedule graph
@@ -44,11 +63,13 @@ def generate_graph(loan_amount, interest_rate, loan_term_years, offset_balance, 
     else:
         monthly_repayment = adjusted_loan_amount / total_months
 
+    total_monthly_repayment = monthly_repayment + extra_repayment
+
     balance = adjusted_loan_amount
     monthly_balances = [balance]
     for month in range(1, total_months + 1):
         interest_payment = balance * monthly_rate
-        principal_payment = monthly_repayment - interest_payment
+        principal_payment = total_monthly_repayment - interest_payment
         balance -= principal_payment
         balance = max(balance, 0)
         monthly_balances.append(balance)
@@ -73,26 +94,18 @@ def index():
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
-    try:
-        # Get form data
-        loan_amount = float(request.form['loan_amount'])
-        interest_rate = float(request.form['interest_rate'])
-        loan_term_years = int(request.form['loan_term_years'])
-        offset_balance = float(request.form['offset_balance'])
-        extra_repayment = float(request.form['extra_repayment'])
+    loan_amount = float(request.form['loan_amount'])
+    interest_rate = float(request.form['interest_rate'])
+    loan_term_years = int(request.form['loan_term_years'])
+    offset_balance = float(request.form['offset_balance'])
+    extra_repayment = float(request.form['extra_repayment'])  # Ensure extra_repayment is a float
 
-        # Perform mortgage calculations
-        result = calculate_mortgage(loan_amount, interest_rate, loan_term_years, offset_balance, extra_repayment)
+    result = calculate_mortgage(loan_amount, interest_rate, loan_term_years, offset_balance, extra_repayment)
+    graph_url = generate_graph(loan_amount, interest_rate, loan_term_years, offset_balance, extra_repayment)
 
-        # Generate the graph
-        graph_url = generate_graph(loan_amount, interest_rate, loan_term_years, offset_balance, extra_repayment)
+    # Pass extra_repayment to the template
+    return render_template('index.html', result=result, graph_url=graph_url, extra_repayment=extra_repayment)
 
-        # Return results and graph to the template
-        return render_template('index.html', result=result, graph_url=graph_url)
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return "There was an error with your calculation.", 500
 
 if __name__ == '__main__':
     app.run(debug=True)

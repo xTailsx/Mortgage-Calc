@@ -1,47 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Mortgage Calculator</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    </head>    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
 <body>
-    <h1>Mortgage Calculator</h1>
-    <form id="mortgage-form" method="POST" action="/calculate">
-        <label for="loan_amount">Loan Amount:</label>
-        <input type="number" id="loan_amount" name="loan_amount" required><br><br>
+    <div class="calculator-container">
+        <h1>Mortgage Calculator</h1>
 
-        <label for="interest_rate">Interest Rate (%):</label>
-        <input type="number" id="interest_rate" name="interest_rate" step="0.01" required><br><br>
+        <!-- Mortgage Calculation Form -->
+        <form method="POST" action="/calculate">
+            <label for="loan_amount">Loan Amount:</label>
+            <input type="number" id="loan_amount" name="loan_amount" required><br><br>
 
-        <label for="loan_term_years">Loan Term (Years):</label>
-        <input type="number" id="loan_term_years" name="loan_term_years" required><br><br>
+            <label for="interest_rate">Interest Rate (%):</label>
+            <input type="number" id="interest_rate" name="interest_rate" step="0.01" required><br><br>
 
-        <label for="offset_balance">Offset Balance:</label>
-        <input type="number" id="offset_balance" name="offset_balance" required><br><br>
+            <label for="loan_term_years">Loan Term (Years):</label>
+            <input type="number" id="loan_term_years" name="loan_term_years" required><br><br>
 
-        <label for="extra_repayment">Extra Repayment per Month:</label>
-        <input type="number" id="extra_repayment" name="extra_repayment" required><br><br>
+            <label for="offset_balance">Offset Balance:</label>
+            <input type="number" id="offset_balance" name="offset_balance" required><br><br>
 
-        <button type="submit">Calculate</button>
-    </form>
+            <label for="extra_repayment">Extra Repayment per Month:</label>
+            <input type="number" id="extra_repayment" name="extra_repayment" required><br><br>
 
-    {% if result %}
-    <div id="results">
-        <h2>Results:</h2>
-        <p>Monthly Repayment: ${{ result.monthly_repayment }}</p>
-        <p>Total Cost: ${{ result.total_cost }}</p>
-        <p>Interest Saved: ${{ result.interest_saved }}</p>
-        <p>Years Saved: {{ result.years_saved }} years</p>
-        <p>Revised Term: {{ result.revised_term_months }} months</p>
+            <button type="submit">Calculate</button>
+        </form>
+
+        <!-- Display the results if available -->
+        {% if result %}
+        <div id="results">
+            <h2>Results:</h2>
+            <p><strong>Monthly Repayment:</strong> ${{ result.monthly_repayment }}</p>
+            <p><strong>Total Cost:</strong> ${{ result.total_cost }}</p>
+            <p><strong>Interest Saved:</strong> ${{ result.interest_saved }}</p>
+            <p><strong>Years Saved:</strong> {{ result.years_saved }} years</p>
+            <p><strong>Revised Term:</strong> {{ result.revised_term_years }} years</p>  <!-- Updated to years -->
+        </div>
+
+        <!-- Display the graph -->
+        <div>
+            <h3>Repayment Schedule Graph:</h3>
+            <img src="data:image/png;base64,{{ graph_url }}" alt="Repayment Graph">
+        </div>
+        {% endif %}
     </div>
 
-    <div>
-        <h3>Repayment Schedule Graph:</h3>
-        <img src="data:image/png;base64,{{ graph_url }}" alt="Repayment Graph">
-    </div>
-    {% endif %}
+    <!-- Include your JS file -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

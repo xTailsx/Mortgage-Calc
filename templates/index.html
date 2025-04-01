@@ -26,6 +26,7 @@
         <button type="submit">Calculate</button>
     </form>
 
+    {% if result %}
     <div id="results">
         <h2>Results:</h2>
         <p>Monthly Repayment: ${{ result.monthly_repayment }}</p>
@@ -35,7 +36,10 @@
         <p>Revised Term: {{ result.revised_term_months }} months</p>
     </div>
 
-        <h2>Repayment Schedule Graph:</h2>
+    <div>
+        <h3>Repayment Schedule Graph:</h3>
         <img src="data:image/png;base64,{{ graph_url }}" alt="Repayment Graph">
+    </div>
+    {% endif %}
 </body>
 </html>

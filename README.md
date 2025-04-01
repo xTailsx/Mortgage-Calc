@@ -27,7 +27,7 @@ bash
 
 Copy
 
-git clone https://github.com/xTailsx/mortgage-calculator.git
+git clone https://github.com/xTailsx/mortgage-calc.git
 
 # Install Dependencies
 
